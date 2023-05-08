@@ -9,6 +9,7 @@ reactnut: $(TARGET)
 
 $(TARGET): $(SOURCES)
 	gofumpt -w $<
+	go vet ./...
 	goreleaser build --single-target --snapshot --clean
 
 .PHONY: clean
