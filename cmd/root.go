@@ -7,15 +7,9 @@ import (
 	"fmt"
 	"os"
 
-	"os/user"
-	"strings"
-
-	"path/filepath"
-
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	"github.com/Pallinder/go-randomdata"
 	log "github.com/taylormonacelli/reactnut/cmd/logging"
 )
 
@@ -23,9 +17,7 @@ var cfgFile string
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:  "reactnut",
-	Args: cobra.ExactArgs(1),
-
+	Use:   "reactnut",
 	Short: "A brief description of your application",
 	Long: `A longer description that spans multiple lines and likely contains
 examples and usage of using your application. For example:
@@ -35,10 +27,7 @@ This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
-	Run: func(cmd *cobra.Command, args []string) {
-		basePath := args[0]
-		dostuff(basePath)
-	},
+	// Run: func(cmd *cobra.Command, args []string) { }
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -103,61 +92,4 @@ func initConfig() {
 
 	viper.AutomaticEnv() // read in environment variables that match
 	viper.ReadInConfig()
-}
-
-func dostuff(basePath string) {
-	adjective := randomdata.Adjective()
-	noun := randomdata.Noun()
-	concat := fmt.Sprintf("%s%s", adjective, noun)
-	fullPath := filepath.Join(basePath, concat)
-
-	for i := 0; i < 10; i++ {
-		if !pathExists(fullPath) {
-			break
-		}
-		adjective := randomdata.Adjective()
-		noun := randomdata.Noun()
-		concat := fmt.Sprintf("%s%s", adjective, noun)
-		fullPath = filepath.Join(basePath, concat)
-	}
-	log.Logger.Traceln(fullPath)
-}
-
-func pathExists(path string) bool {
-	path, err := expandTilde(path)
-	if err != nil {
-		panic(err)
-	}
-	log.Logger.Trace("")
-	log.Logger.Traceln(path) // output: /Users/username/Documents/example.txt
-
-	// Use os.Stat() to get information about the path
-	fileInfo, err := os.Stat(path)
-	if err != nil {
-		return false
-	}
-
-	// Check if the error value is nil, which indicates that the path exists
-	if err == nil {
-		// Check if the path is a directory
-		if fileInfo.Mode().IsDir() {
-			log.Logger.Tracef("%s is a directory\n", path)
-		} else {
-			log.Logger.Tracef("%s is a file\n", path)
-		}
-	} else {
-		log.Logger.Tracef("Path %s does not exist\n", path)
-	}
-	return true
-}
-
-func expandTilde(path string) (string, error) {
-	if strings.HasPrefix(path, "~/") || path == "~" {
-		currentUser, err := user.Current()
-		if err != nil {
-			return "", err
-		}
-		return strings.Replace(path, "~", currentUser.HomeDir, 1), nil
-	}
-	return path, nil
 }

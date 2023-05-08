@@ -8,7 +8,7 @@ reactnut: $(TARGET)
 	cp $< $@
 
 $(TARGET): $(SOURCES)
-	gofumpt -w $<
+	gofumpt -w $< $(SOURCES)
 	go vet ./...
 	goreleaser build --single-target --snapshot --clean
 
