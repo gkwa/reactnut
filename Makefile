@@ -1,9 +1,6 @@
 SOURCES := $(shell find . -name '*.go')
 TARGET := ./dist/reactnut_darwin_amd64_v1/reactnut
 
-run: reactnut
-	./reactnut
-
 reactnut: $(TARGET)
 	cp $< $@
 

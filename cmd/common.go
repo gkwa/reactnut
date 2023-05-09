@@ -11,31 +11,66 @@ import (
 	log "github.com/taylormonacelli/reactnut/cmd/logging"
 )
 
-func dostuff(basePath string) {
+func concatWords() string {
 	adjective := randomdata.Adjective()
 	noun := randomdata.Noun()
-	concat := fmt.Sprintf("%s%s", adjective, noun)
-	fullPath := filepath.Join(basePath, concat)
+	concat := strings.ToLower(fmt.Sprintf("%s%s", adjective, noun))
+	log.Logger.Tracef("concatinated: %s", concat)
+	return concat
+}
 
-	for i := 0; i < 10; i++ {
+func genPathStr(basePath string, fullPath *string) error {
+	concat := concatWords()
+	*fullPath = filepath.Join(basePath, concat)
+
+	if filepath.IsAbs(*fullPath) {
+		return nil
+	}
+	c, err := os.Getwd()
+	if err != nil {
+		return err
+	}
+	n := filepath.Join(c, *fullPath)
+	*fullPath = n
+	return nil
+}
+
+func dostuff(basePath string) (string, error) {
+	log.Logger.Trace("calling dostuff")
+	i := 0
+
+	var fullPath string
+	for i < 5 {
+		log.Logger.Tracef("i:%d", i)
+		err := genPathStr(basePath, &fullPath)
+		if err != nil {
+			log.Logger.Fatalf("can't create path %s", fullPath)
+		}
+		log.Logger.Debugf("fullPath: %s", fullPath)
+
 		if !pathExists(fullPath) {
 			break
 		}
-		adjective := randomdata.Adjective()
-		noun := randomdata.Noun()
-		concat := fmt.Sprintf("%s%s", adjective, noun)
-		fullPath = filepath.Join(basePath, concat)
+		i++
 	}
-	os.MkdirAll(fullPath, 0o755)
-	fmt.Print(fullPath)
+
+	log.Logger.Tracef("making directory %s", fullPath)
+	err := os.MkdirAll(fullPath, 0o755)
+	if err != nil {
+		log.Logger.Fatalf("failed to create path '%s'", fullPath)
+	}
+	if !pathExists(fullPath) {
+		return "", err
+	}
+	return fullPath, err
 }
 
-func pathExists(path string) bool {
-	path, err := expandTilde(path)
+func pathExists(path1 string) bool {
+	path, err := expandTilde(path1)
 	if err != nil {
-		panic(err)
+		log.Logger.Fatalf("expanding tilde creates error for path: %s, error: %s",
+			path, err)
 	}
-	log.Logger.Trace("")
 	log.Logger.Traceln(path) // output: /Users/username/Documents/example.txt
 
 	// Use os.Stat() to get information about the path
@@ -62,9 +97,11 @@ func expandTilde(path string) (string, error) {
 	if strings.HasPrefix(path, "~/") || path == "~" {
 		currentUser, err := user.Current()
 		if err != nil {
+			log.Logger.Warningf("checking current user results in error: %s", err)
 			return "", err
 		}
 		return strings.Replace(path, "~", currentUser.HomeDir, 1), nil
 	}
+	log.Logger.Tracef("returning path: %s", path)
 	return path, nil
 }
