@@ -15,7 +15,7 @@ import (
 
 var (
 	cfgFile string
-	dir     string
+	baseDir string
 )
 
 // rootCmd represents the base command when called without any subcommands
@@ -32,7 +32,7 @@ to quickly create a Cobra application.`,
 	// has an action associated with it:
 	Run: func(cmd *cobra.Command, args []string) {
 		log.Logger.Trace("run")
-		baseDir := viper.GetString("dir")
+		baseDir := viper.GetString("baseDir")
 		fullPath, err := dostuff(baseDir)
 		if err != nil {
 			log.Logger.Fatalf("can't create path: %s", fullPath)
@@ -64,8 +64,8 @@ func init() {
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
 	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-	rootCmd.Flags().StringVarP(&dir, "dir", "d", "", "base directory name (eg 'mypath')")
-	rootCmd.MarkFlagRequired("dir")
+	rootCmd.Flags().StringVarP(&baseDir, "basedir", "b", "", "base directory name (eg 'mypath')")
+	rootCmd.MarkFlagRequired("basedir")
 	// Here you will define your flags and configuration settings.
 	// Cobra supports persistent flags, which, if defined here,
 	// will be global for your application.
@@ -97,7 +97,7 @@ func initConfig() {
 		fmt.Fprintln(os.Stderr, "Using config file:", viper.ConfigFileUsed())
 	}
 
-	viper.BindPFlag("dir", rootCmd.Flags().Lookup("dir"))
+	viper.BindPFlag("basedir", rootCmd.Flags().Lookup("basedir"))
 	viper.BindPFlag("log-level", rootCmd.Flags().Lookup("log-level"))
 	logLevel := log.ParseLogLevel(viper.GetString("log-level"))
 	log.Logger.SetLevel(logLevel)
