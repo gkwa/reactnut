@@ -22,7 +22,7 @@ This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		log.Logger.Traceln("Run was triggered")
-		fmt.Println("reactnut version 0.0.8")
+		fmt.Println("reactnut version 0.0.9")
 	},
 }
 
