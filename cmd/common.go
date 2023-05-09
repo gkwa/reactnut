@@ -23,15 +23,21 @@ func genPathStr(basePath string, fullPath *string) error {
 	concat := concatWords()
 	*fullPath = filepath.Join(basePath, concat)
 
+	err := expandTilde(fullPath)
+	if err != nil {
+		log.Logger.Fatalf("expanding path causes error: %s", err)
+	}
+
 	if filepath.IsAbs(*fullPath) {
 		return nil
 	}
+
 	c, err := os.Getwd()
 	if err != nil {
 		return err
 	}
-	n := filepath.Join(c, *fullPath)
-	*fullPath = n
+
+	*fullPath = filepath.Join(c, *fullPath)
 	return nil
 }
 
@@ -65,8 +71,8 @@ func dostuff(basePath string) (string, error) {
 	return fullPath, err
 }
 
-func pathExists(path1 string) bool {
-	path, err := expandTilde(path1)
+func pathExists(path string) bool {
+	err := expandTilde(&path)
 	if err != nil {
 		log.Logger.Fatalf("expanding tilde creates error for path: %s, error: %s",
 			path, err)
@@ -83,25 +89,26 @@ func pathExists(path1 string) bool {
 	if err == nil {
 		// Check if the path is a directory
 		if fileInfo.Mode().IsDir() {
-			log.Logger.Tracef("%s is a directory\n", path)
+			log.Logger.Tracef("%s is a directory", path)
 		} else {
-			log.Logger.Tracef("%s is a file\n", path)
+			log.Logger.Tracef("%s is a file", path)
 		}
 	} else {
-		log.Logger.Tracef("Path %s does not exist\n", path)
+		log.Logger.Tracef("Path %s does not exist", path)
 	}
 	return true
 }
 
-func expandTilde(path string) (string, error) {
-	if strings.HasPrefix(path, "~/") || path == "~" {
+func expandTilde(path *string) error {
+	if strings.HasPrefix(*path, "~/") || *path == "~" {
 		currentUser, err := user.Current()
 		if err != nil {
 			log.Logger.Warningf("checking current user results in error: %s", err)
-			return "", err
+			return err
 		}
-		return strings.Replace(path, "~", currentUser.HomeDir, 1), nil
+		*path = strings.Replace(*path, "~", currentUser.HomeDir, 1)
+		log.Logger.Tracef("path is expanded to %s", *path)
+		return nil
 	}
-	log.Logger.Tracef("returning path: %s", path)
-	return path, nil
+	return nil
 }
