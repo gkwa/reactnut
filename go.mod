@@ -2,7 +2,7 @@ module github.com/taylormonacelli/reactnut
 
 go 1.23.0
 
-toolchain go1.25.2
+toolchain go1.25.3
 
 require (
 	github.com/Pallinder/go-randomdata v1.2.0
